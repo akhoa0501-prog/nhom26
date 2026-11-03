@@ -1,0 +1,283 @@
+
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Giỏ hàng | BookStore</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<header class="top">
+    <a class="brand" th:href="@{/}">📚 BookStore</a>
+    <nav>
+        <a th:href="@{/}">Mua sách</a>
+        <a th:href="@{/account}">Tài khoản</a>
+        <a th:href="@{/orders}">Đơn hàng</a>
+    </nav>
+</header>
+
+<main class="container">
+    <h1>🛒 Giỏ hàng của tôi</h1>
+
+    <p class="muted">
+        Chọn những cuốn sách muốn mua.
+        Sách không được chọn sẽ ở lại giỏ hàng.
+    </p>
+
+    <p class="error"
+       th:if="${error != null}"
+       th:text="${error}">
+    </p>
+
+    <!-- Giỏ hàng trống -->
+    <div class="empty"
+         th:if="${rows == null or #lists.isEmpty(rows)}">
+        Giỏ hàng đang trống.
+        <a th:href="@{/}">Khám phá sách</a>
+    </div>
+
+    <!-- Giỏ hàng có sách -->
+    <div th:if="${rows != null and !#lists.isEmpty(rows)}">
+
+        <form id="checkoutForm"
+              th:action="@{/checkout}"
+              method="post">
+
+            <div class="tablewrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>
+                            <input type="checkbox"
+                                   id="all"
+                                   checked
+                                   aria-label="Chọn tất cả">
+                        </th>
+                        <th>Sách</th>
+                        <th>Giá</th>
+                        <th>Số lượng</th>
+                        <th>Thành tiền</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <tr th:each="r : ${rows}">
+
+                        <!-- Chọn sách thanh toán -->
+                        <td>
+                            <input type="checkbox"
+                                   class="pick"
+                                   name="selectedIds"
+                                   th:value="${r.book.id}"
+                                   th:attr="data-price=${r.book.price},
+                                            data-qty=${r.quantity}"
+                                   checked
+                                   aria-label="Chọn sách">
+                        </td>
+
+                        <!-- Tên sách -->
+                        <td>
+                            <strong th:text="${r.book.title}">
+                                Tên sách
+                            </strong>
+                        </td>
+
+                        <!-- Giá sách -->
+                        <td th:text="|${#numbers.formatDecimal(r.book.price, 1, 'POINT', 0, 'COMMA')} đ|">
+                            0 đ
+                        </td>
+
+                        <!-- Số lượng -->
+                        <td th:text="${r.quantity}">
+                            1
+                        </td>
+
+                        <!-- Thành tiền -->
+                        <td th:text="|${#numbers.formatDecimal(r.book.price * r.quantity, 1, 'POINT', 0, 'COMMA')} đ|">
+                            0 đ
+                        </td>
+
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Thanh toán -->
+            <section class="checkout">
+
+                <h2>
+                    Tổng tiền sách đã chọn:
+                    <span class="price" id="chosenTotal">
+                        0 đ
+                    </span>
+                </h2>
+
+                <h3>Thông tin nhận hàng</h3>
+
+                <div class="checkoutform">
+
+                    <label>
+                        Người nhận
+                        <input type="text"
+                               name="receiverName"
+                               th:value="${profile != null ? profile.fullName : ''}"
+                               required
+                               maxlength="160">
+                    </label>
+
+                    <label>
+                        Số điện thoại
+                        <input type="tel"
+                               name="phone"
+                               th:value="${profile != null ? profile.phone : ''}"
+                               required
+                               maxlength="30">
+                    </label>
+
+                    <label>
+                        Địa chỉ nhận hàng
+                        <input type="text"
+                               name="address"
+                               th:value="${profile != null ? profile.address : ''}"
+                               required
+                               maxlength="300">
+                    </label>
+
+                    <label>
+                        Phương thức thanh toán
+                        <select name="paymentMethod">
+                            <option value="COD">
+                                COD - Thanh toán khi nhận hàng
+                            </option>
+                            <option value="QR">
+                                QR Sandbox - Thanh toán mô phỏng
+                            </option>
+                        </select>
+                    </label>
+
+                    <button class="btn"
+                            id="checkoutButton"
+                            type="submit">
+                        Thanh toán sách đã chọn
+                    </button>
+
+                </div>
+            </section>
+
+        </form>
+
+        <!-- Điều chỉnh giỏ hàng -->
+        <h2>Điều chỉnh giỏ hàng</h2>
+
+        <div class="cart-edit"
+             th:each="r : ${rows}">
+
+            <strong th:text="${r.book.title}">
+                Tên sách
+            </strong>
+
+            <!-- Cập nhật số lượng -->
+            <form th:action="@{/cart/update}"
+                  method="post">
+
+                <input type="hidden"
+                       name="bookId"
+                       th:value="${r.book.id}">
+
+                <input type="number"
+                       name="quantity"
+                       min="0"
+                       th:max="${r.book.stock}"
+                       th:value="${r.quantity}"
+                       style="width:72px">
+
+                <button class="btn small"
+                        type="submit">
+                    Cập nhật
+                </button>
+
+            </form>
+
+            <!-- Xóa sách -->
+            <form th:action="@{/cart/remove/{id}(id=${r.book.id})}"
+                  method="post">
+
+                <button class="danger"
+                        type="submit">
+                    Xóa
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+</main>
+
+<script>
+    const picks = [
+        ...document.querySelectorAll(".pick")
+    ];
+
+    const selectAll = document.getElementById("all");
+    const totalElement = document.getElementById("chosenTotal");
+    const checkoutButton = document.getElementById("checkoutButton");
+
+    function recalc() {
+        let total = 0;
+
+        for (const item of picks) {
+            if (item.checked) {
+                const price = Number(item.dataset.price);
+                const quantity = Number(item.dataset.qty);
+
+                total += price * quantity;
+            }
+        }
+
+        if (totalElement) {
+            totalElement.textContent =
+                total.toLocaleString("vi-VN", {
+                    maximumFractionDigits: 0
+                }) + " đ";
+        }
+
+        if (checkoutButton) {
+            checkoutButton.disabled = total <= 0;
+        }
+
+        if (selectAll) {
+            selectAll.checked =
+                picks.length > 0 &&
+                picks.every(item => item.checked);
+
+            selectAll.indeterminate =
+                picks.some(item => item.checked) &&
+                !picks.every(item => item.checked);
+        }
+    }
+
+    // Chọn từng cuốn sách
+    picks.forEach(item => {
+        item.addEventListener("change", recalc);
+    });
+
+    // Chọn hoặc bỏ chọn tất cả
+    if (selectAll) {
+        selectAll.addEventListener("change", function () {
+            picks.forEach(item => {
+                item.checked = selectAll.checked;
+            });
+
+            recalc();
+        });
+    }
+
+    // Tính tổng khi mở giỏ hàng
+    recalc();
+</script>
+
+</body>
+</html>

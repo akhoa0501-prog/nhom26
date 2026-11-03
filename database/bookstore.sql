@@ -1,0 +1,3 @@
+CREATE DATABASE IF NOT EXISTS bookstore_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE bookstore_db;
+-- Spring Boot tự tạo bảng qua JPA (ddl-auto=update).

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Đăng nhập quản trị - BookStore</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<header class="top">
+    <a class="brand" th:href="@{/}">📚 BookStore</a>
+    <nav>
+        <a th:href="@{/}">Trang chủ</a>
+        <a th:href="@{/login}">Đăng nhập khách hàng</a>
+    </nav>
+</header>
+
+<main class="auth">
+    <form class="panel" th:action="@{/admin/login}" method="post">
+
+        <p class="eyebrow">BOOKSTORE ADMINISTRATION</p>
+        <h1>Đăng nhập Admin</h1>
+
+        <p class="error" th:if="${param.error}">
+            Tên đăng nhập hoặc mật khẩu không đúng.
+        </p>
+
+        <p class="success" th:if="${param.logout}">
+            Bạn đã đăng xuất khỏi trang quản trị.
+        </p>
+
+        <label>
+            Tên đăng nhập
+            <input type="text" name="username" required autofocus>
+        </label>
+
+        <label>
+            Mật khẩu
+            <input type="password" name="password" required>
+        </label>
+
+        <button class="btn full" type="submit">
+            Đăng nhập quản trị
+        </button>
+
+        <p class="muted center">
+            <a th:href="@{/}">Quay về trang chủ</a>
+        </p>
+
+    </form>
+</main>
+
+</body>
+</html>
